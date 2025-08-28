@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title data-i18n="title">Web en construcción</title>
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    :root{
+      --bg-1:#0b1220;
+      --bg-2:#111827;
+      --glass:#0f172a80;
+      --glass-border:#ffffff26;
+      --accent:#7c3aed;
+      --accent-2:#22d3ee;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 24px;
+    }
+
+    *{ box-sizing:border-box }
+    html,body{height:100%;margin:0}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+                   Roboto, "Helvetica Neue", Inter, Arial, "Apple Color Emoji",
+                   "Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% 10%, #1f2937 0%, transparent 60%),
+        radial-gradient(1000px 700px at 90% 20%, #111827 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      min-height:100%;
+      overflow:hidden;
+    }
+
+    .aurora, .aurora::before, .aurora::after{
+      position:fixed; inset:0; pointer-events:none; z-index:-1;
+    }
+    .aurora::before, .aurora::after{
+      content:""; filter: blur(60px); opacity:.35; mix-blend-mode:screen;
+    }
+    .aurora::before{
+      background:
+        radial-gradient(40% 40% at 20% 30%, var(--accent) 0%, transparent 60%),
+        radial-gradient(35% 35% at 80% 25%, var(--accent-2) 0%, transparent 60%);
+      transform:translate3d(-8%, -6%, 0) rotate(0deg);
+      animation:float-a 22s ease-in-out infinite alternate;
+    }
+    .aurora::after{
+      background:
+        radial-gradient(40% 40% at 30% 80%, #34d399 0%, transparent 60%),
+        radial-gradient(35% 35% at 75% 70%, #60a5fa 0%, transparent 60%);
+      transform:translate3d(6%, 4%, 0) rotate(0deg);
+      animation:float-b 28s ease-in-out infinite alternate;
+    }
+    @keyframes float-a{0%{ transform:translate3d(-8%,-6%,0) rotate(0)}100%{ transform:translate3d(8%,6%,0) rotate(10deg)}}
+    @keyframes float-b{0%{ transform:translate3d(6%,4%,0) rotate(0)}100%{ transform:translate3d(-6%,-4%,0) rotate(-12deg)}}
+
+    .grid-overlay{
+      position:fixed; inset:0;
+      background:
+        linear-gradient(transparent 95%, #ffffff10 100%) 0 0/100% 24px,
+        linear-gradient(90deg, transparent 95%, #ffffff10 100%) 0 0/24px 100%;
+      opacity:.25; pointer-events:none; z-index:-1;
+      mask-image: radial-gradient(100% 80% at 50% 50%, black 40%, transparent 100%);
+    }
+
+    .wrap{ position:relative; min-height:100svh; display:grid; place-items:center; padding:32px; isolation:isolate; }
+
+    .card{
+      width:min(880px,92vw);
+      background: linear-gradient(180deg, #ffffff10, #ffffff05);
+      background-color:var(--glass);
+      border:1px solid var(--glass-border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:clamp(24px, 4vw, 44px);
+      backdrop-filter:saturate(160%) blur(16px);
+      -webkit-backdrop-filter:saturate(160%) blur(16px);
+      position:relative; overflow:hidden;
+    }
+    .card::before{
+      content:""; position:absolute; inset:-1px; padding:1px; border-radius:inherit;
+      background:conic-gradient(from 0deg, transparent 0 20deg, #ffffff55 60deg, transparent 120deg, #ffffff33 180deg, transparent 240deg, #ffffff55 300deg, transparent 360deg);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      animation:spin 14s linear infinite; opacity:.35; pointer-events:none;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .top{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+    .logo{ width:48px; height:48px; border-radius:14px;
+      background:
+        radial-gradient(120% 120% at 0% 0%, var(--accent-2), transparent 60%),
+        radial-gradient(120% 120% at 100% 100%, var(--accent), transparent 60%),
+        linear-gradient(135deg, #1f2937, #0b1220);
+      box-shadow: inset 0 0 0 1px #ffffff30, 0 6px 20px #00000055;
+    }
+    .brand{ font-weight:700; letter-spacing:.4px; color:#fff; font-size:1.05rem; opacity:.95; }
+    .lang{ margin-left:auto }
+    .lang-group{ display:flex; gap:8px }
+    .lang-btn{ appearance:none; border:1px solid #ffffff24; background:#0b122050; color:#e5e7eb; width:36px; height:36px; display:grid; place-items:center; border-radius:10px; cursor:pointer; font-size:18px; line-height:1; transition:transform .15s ease, border-color .2s ease, box-shadow .2s ease }
+    .lang-btn:hover{ transform:translateY(-1px); border-color:#ffffff4d }
+    .lang-btn.active{ box-shadow:0 0 0 2px #22d3ee33; border-color:#22d3ee }
+
+    h1{
+      margin:8px 0 12px; font-size:clamp(28px, 4.6vw, 46px); line-height:1.07;
+      background:linear-gradient(90deg, #fff, #e9d5ff 40%, #a5f3fc);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-wrap:balance;
+    }
+    p.lead{ margin:0 0 22px; color:var(--muted); font-size:clamp(16px,2.2vw,18px); text-wrap:pretty; }
+
+    .progress{ height:10px; border-radius:999px; background:#ffffff12; overflow:hidden; position:relative; border:1px solid #ffffff1a; box-shadow:inset 0 1px 2px #00000040; }
+    .progress>span{
+      display:block; height:100%; width:40%;
+      background:linear-gradient(90deg, var(--accent), var(--accent-2)); background-size:200% 100%;
+      animation:load 2.4s ease-in-out infinite; border-radius:inherit;
+    }
+    @keyframes load{ 0%{transform:translateX(-60%); background-position:0 50%} 100%{transform:translateX(160%); background-position:100% 50%} }
+
+    .chips{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+    .chip{ --chip-bg:#111827a8; display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; border:1px solid #ffffff24; background:var(--chip-bg); text-decoration:none; color:#e7eaf3; font-weight:600; transition:transform .2s ease, border-color .2s ease, background .2s ease; will-change:transform; }
+    .chip:hover{ transform:translateY(-2px); border-color:#ffffff4d; background:linear-gradient(180deg, #ffffff18, #ffffff0a); }
+    .chip .dot{ width:8px; height:8px; border-radius:50%; background: radial-gradient(circle at 35% 35%, #fff, #fff0 70%); box-shadow:0 0 10px #ffffffaa; }
+
+    .foot{ margin-top:18px; color:#94a3b8; font-size:12.5px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .sep{ opacity:.25 }
+
+    /* ===== Mini juego ===== */
+    .game{
+      margin-top:26px; border:1px solid #ffffff24; border-radius:16px; padding:14px;
+      background: linear-gradient(180deg, #0b122040, #0b122020);
+      backdrop-filter: blur(8px) saturate(130%); -webkit-backdrop-filter: blur(8px) saturate(130%);
+    }
+    .game-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+    .game-title{ font-weight:700; letter-spacing:.2px; }
+    .game-hint{ color:var(--muted); font-size:12.5px; display:flex; gap:10px; align-items:center; }
+    .canvas-wrap{ position:relative; width:100%; aspect-ratio:16/4; border-radius:12px; overflow:hidden; background:linear-gradient(180deg, #0b1220, #0b1228); box-shadow: inset 0 1px 0 #ffffff10, 0 10px 24px #00000050; }
+    canvas#runner{ width:100%; height:100%; display:block; }
+    .select{ appearance:none; border:1px solid #ffffff24; background:#0b122050; color:#e5e7eb; padding:8px 12px; border-radius:10px; font-weight:600; }
+    .select:focus{ outline:none; border-color:#a5f3fc; box-shadow:0 0 0 2px #22d3ee33; }
+
+    @media (prefers-reduced-motion: reduce){
+      .aurora::before, .aurora::after, .card::before, .progress>span{ animation:none !important; }
+    }
+    @media (max-width:520px){
+      .top{ gap:10px } .logo{ width:42px; height:42px; border-radius:12px }
+      .game-hint{ font-size:12px }
+    }
+  </style>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <section class="card" role="status" aria-live="polite">
+      <div class="top">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="brand">Your Website Name</div>
+        <div class="lang">
+          <div id="lang" class="lang-group" role="radiogroup" aria-label="Seleccionar idioma" data-i18n-aria="langLabel">
+            <button class="lang-btn" role="radio" aria-checked="false" data-lang="es" title="Español" aria-label="Español">🇪🇸</button>
+            <button class="lang-btn" role="radio" aria-checked="false" data-lang="en" title="English" aria-label="English">🇬🇧</button>
+            <button class="lang-btn" role="radio" aria-checked="false" data-lang="de" title="Deutsch" aria-label="Deutsch">🇩🇪</button>
+            <button class="lang-btn" role="radio" aria-checked="false" data-lang="it" title="Italiano" aria-label="Italiano">🇮🇹</button>
+            <button class="lang-btn" role="radio" aria-checked="false" data-lang="fr" title="Français" aria-label="Français">🇫🇷</button>
+          </div>
+        </div>
+      </div>
+
+      <h1 data-i18n="heading">🔧 Web en construcción</h1>
+      <p class="lead" data-i18n="lead">
+        Estamos preparando algo increíble. Gracias por tu paciencia.
+        Vuelve pronto para descubrirlo.
+      </p>
+
+      <div class="progress" aria-label="Progreso estimado" data-i18n-aria="progressLabel">
+        <span></span>
+      </div>
+
+      <div class="chips" role="navigation" aria-label="Enlaces rápidos" data-i18n-aria="quickLinks">
+        <a class="chip" href="mailto:contact@yourdomain.com"><span class="dot" aria-hidden="true"></span><span data-i18n="contact">Contacto</span></a>
+        <a class="chip" href="https://www.linkedin.com/in/" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>LinkedIn</a>
+        <a class="chip" href="https://github.com/" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>GitHub</a>
+      </div>
+
+      <div class="foot">
+        <span>© <span id="y">2025</span> · Iker Jurado</span>
+        <span class="sep">•</span>
+        <span data-i18n="madeWithLove">Hecho con cariño ✨</span>
+      </div>
+
+      <!-- ===== Mini juego tipo "runner" ===== -->
+      <section class="game" aria-label="Mini juego runner" data-i18n-aria="gameAria">
+        <div class="game-head">
+          <div class="game-title" data-i18n="gameTitle">🎮 Mini-Game: Marvel's Run</div>
+          <div class="game-hint">
+            <span data-i18n="hintJump">Salta: <strong>Espacio</strong> (↑/W o toque)</span>
+            <span data-i18n="hintPause">⏸ Pausa: <strong>P</strong></span>
+            <span data-i18n="hintRestart">↻ Reiniciar: <strong>R</strong></span>
+            <label>
+              <select id="difficulty" class="select" aria-label="Seleccionar dificultad" data-i18n-aria="difficultyLabel">
+                <option value="easy" data-i18n="difficulty.easy" selected>Fácil</option>
+                <option value="normal" data-i18n="difficulty.normal">Normal</option>
+                <option value="hard" data-i18n="difficulty.hard">Difícil</option>
+                <option value="insane" data-i18n="difficulty.insane">Insano</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="runner" width="800" height="200" aria-label="Lienzo del juego runner" data-i18n-aria="canvasAria"></canvas>
+        </div>
+      </section>
+      <!-- ===== /Mini juego ===== -->
+    </section>
+  </main>
+
+  <script>
+    // ======= i18n: ES/EN/DE/IT/FR =======
+    (function(){
+      const I18N = {
+        es: {
+          code: 'es',
+          langLabel: 'Seleccionar idioma',
+          title: 'Web en construcción',
+          heading: '🔧 Web en construcción',
+          lead: 'Estamos preparando algo increíble. Gracias por tu paciencia. Vuelve pronto para descubrirlo.',
+          quickLinks: 'Enlaces rápidos',
+          contact: 'Contacto',
+          madeWithLove: 'Hecho con cariño ✨',
+          gameTitle: "🎮 Mini‑juego: Marvel's Run",
+          hintJump: 'Salta: <strong>Espacio</strong> (↑/W o toque)',
+          hintPause: '⏸ Pausa: <strong>P</strong>',
+          hintRestart: '↻ Reiniciar: <strong>R</strong>',
+          difficultyLabel: 'Seleccionar dificultad',
+          difficulty: { easy: 'Fácil', normal: 'Normal', hard: 'Difícil', insane: 'Insano' },
+          gameAria: 'Mini juego runner',
+          canvasAria: 'Lienzo del juego runner',
+          progressLabel: 'Progreso estimado',
+          hudScore: 'Puntos',
+          hudBest: 'Mejor',
+          hudSpeed: 'Vel',
+          pauseBanner: 'PAUSA',
+          overBanner: '💥 FIN — pulsa ESPACIO o R'
+        },
+        en: {
+          code: 'en',
+          langLabel: 'Select language',
+          title: 'Website under construction',
+          heading: '🔧 Website under construction',
+          lead: "We're preparing something awesome. Thanks for your patience. Check back soon.",
+          quickLinks: 'Quick links',
+          contact: 'Contact',
+          madeWithLove: 'Made with love ✨',
+          gameTitle: "🎮 Mini‑game: Marvel's Run",
+          hintJump: 'Jump: <strong>Space</strong> (↑/W or tap)',
+          hintPause: '⏸ Pause: <strong>P</strong>',
+          hintRestart: '↻ Restart: <strong>R</strong>',
+          difficultyLabel: 'Select difficulty',
+          difficulty: { easy: 'Easy', normal: 'Normal', hard: 'Hard', insane: 'Insane' },
+          gameAria: 'Runner mini-game',
+          canvasAria: 'Runner game canvas',
+          progressLabel: 'Estimated progress',
+          hudScore: 'Score',
+          hudBest: 'Best',
+          hudSpeed: 'Speed',
+          pauseBanner: 'PAUSE',
+          overBanner: '💥 GAME OVER — press SPACE or R'
+        },
+        de: {
+          code: 'de',
+          langLabel: 'Sprache wählen',
+          title: 'Webseite im Aufbau',
+          heading: '🔧 Webseite im Aufbau',
+          lead: 'Wir bereiten etwas Großartiges vor. Danke für deine Geduld. Schau bald wieder vorbei.',
+          quickLinks: 'Schnellzugriffe',
+          contact: 'Kontakt',
+          madeWithLove: 'Mit Liebe gemacht ✨',
+          gameTitle: "🎮 Minispiel: Marvel's Run",
+          hintJump: 'Springen: <strong>Leertaste</strong> (↑/W oder Tippen)',
+          hintPause: '⏸ Pause: <strong>P</strong>',
+          hintRestart: '↻ Neustart: <strong>R</strong>',
+          difficultyLabel: 'Schwierigkeitsgrad wählen',
+          difficulty: { easy: 'Leicht', normal: 'Normal', hard: 'Schwer', insane: 'Wahnsinnig' },
+          gameAria: 'Runner‑Minispiel',
+          canvasAria: 'Spielfeld des Runner-Spiels',
+          progressLabel: 'Geschätzter Fortschritt',
+          hudScore: 'Punkte',
+          hudBest: 'Best',
+          hudSpeed: 'Tempo',
+          pauseBanner: 'PAUSE',
+          overBanner: '💥 GAME OVER — Leertaste oder R'
+        },
+        it: {
+          code: 'it',
+          langLabel: 'Seleziona lingua',
+          title: 'Sito in costruzione',
+          heading: '🔧 Sito in costruzione',
+          lead: 'Stiamo preparando qualcosa di fantastico. Grazie per la pazienza. Torna presto.',
+          quickLinks: 'Link rapidi',
+          contact: 'Contatto',
+          madeWithLove: 'Fatto con amore ✨',
+          gameTitle: "🎮 Mini‑gioco: Marvel's Run",
+          hintJump: 'Salta: <strong>Spazio</strong> (↑/W o tocca)',
+          hintPause: '⏸ Pausa: <strong>P</strong>',
+          hintRestart: '↻ Riavvia: <strong>R</strong>',
+          difficultyLabel: 'Seleziona difficoltà',
+          difficulty: { easy: 'Facile', normal: 'Normale', hard: 'Difficile', insane: 'Folle' },
+          gameAria: 'Mini‑gioco runner',
+          canvasAria: 'Area di gioco runner',
+          progressLabel: 'Progresso stimato',
+          hudScore: 'Punteggio',
+          hudBest: 'Best',
+          hudSpeed: 'Velocità',
+          pauseBanner: 'PAUSA',
+          overBanner: '💥 FINE — premi SPAZIO o R'
+        },
+        fr: {
+          code: 'fr',
+          langLabel: 'Sélectionner la langue',
+          title: 'Site en construction',
+          heading: '🔧 Site en construction',
+          lead: 'Nous préparons quelque chose d’incroyable. Merci pour votre patience. Revenez bientôt pour le découvrir.',
+          quickLinks: 'Liens rapides',
+          contact: 'Contact',
+          madeWithLove: 'Fait avec amour ✨',
+          gameTitle: "🎮 Mini‑jeu : Marvel's Run",
+          hintJump: 'Sauter : <strong>Espace</strong> (↑/W ou toucher)',
+          hintPause: '⏸ Pause : <strong>P</strong>',
+          hintRestart: '↻ Recommencer : <strong>R</strong>',
+          difficultyLabel: 'Sélectionner la difficulté',
+          difficulty: { easy: 'Facile', normal: 'Normal', hard: 'Difficile', insane: 'Dément' },
+          gameAria: 'Mini‑jeu runner',
+          canvasAria: 'Zone de jeu runner',
+          progressLabel: 'Progression estimée',
+          hudScore: 'Score',
+          hudBest: 'Meilleur',
+          hudSpeed: 'Vitesse',
+          pauseBanner: 'PAUSE',
+          overBanner: '💥 FIN — appuyez sur ESPACE ou R'
+        }
+      };
+
+      const LS_KEY = 'site_lang_v1';
+      const supported = Object.keys(I18N);
+      function detect(){
+        try{
+          const fromLS = localStorage.getItem(LS_KEY);
+          if(fromLS && supported.includes(fromLS)) return fromLS;
+        }catch(_){/* ignore */}
+        const nav = (navigator.language || 'es').slice(0,2).toLowerCase();
+        return supported.includes(nav) ? nav : 'es';
+      }
+
+      function applyTexts(T){
+        document.title = T.title;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          const path = key.split('.');
+          let val = T;
+          for(const p of path){ val = val?.[p]; }
+          if(typeof val === 'string'){
+            el.innerHTML = val;
+          }
+        });
+        document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+          const key = el.getAttribute('data-i18n-aria');
+          const val = T[key];
+          if(typeof val === 'string'){ el.setAttribute('aria-label', val); }
+        });
+        const diffSel = document.getElementById('difficulty');
+        if(diffSel){
+          diffSel.setAttribute('aria-label', T.difficultyLabel);
+          [...diffSel.options].forEach(opt => {
+            const k = opt.getAttribute('data-i18n');
+            if(!k) return;
+            const path = k.split('.');
+            let val = T;
+            for(const p of path){ val = val?.[p]; }
+            if(typeof val === 'string'){ opt.textContent = val; }
+          });
+        }
+        const langGroup = document.getElementById('lang');
+        if(langGroup){ langGroup.setAttribute('aria-label', T.langLabel); }
+      }
+
+      function setLang(code){
+        if(!supported.includes(code)) return;
+        try{ localStorage.setItem(LS_KEY, code); }catch(_){/* ignore */}
+        const T = I18N[code];
+        document.documentElement.setAttribute('lang', T.code);
+        applyTexts(T);
+        window.__I18N__ = { T };
+        document.querySelectorAll('.lang-btn').forEach(b => {
+          const active = b.dataset.lang === code;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-checked', active ? 'true' : 'false');
+        });
+      }
+
+      const initial = detect();
+      window.__I18N__ = { T: I18N[initial] };
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+          btn.addEventListener('click', () => setLang(btn.dataset.lang));
+        });
+        setLang(initial);
+      });
+
+      window.setSiteLanguage = setLang;
+    })();
+    // =============== Runner minigame ===============
+    (function(){
+      const canvas = document.getElementById('runner');
+      const ctx = canvas.getContext('2d');
+      const difficultySel = document.getElementById('difficulty');
+
+      // HiDPI + responsive
+      let scale = 1;
+      function fitCanvas(){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const rect = canvas.getBoundingClientRect();
+        canvas.width  = Math.floor(rect.width  * dpr);
+        canvas.height = Math.floor(rect.height * dpr);
+        scale = dpr;
+      }
+      fitCanvas();
+      window.addEventListener('resize', fitCanvas);
+
+      // Parám. por dificultad
+      const DIFF = {
+        easy:   { base: 2.4, accel: 0.00012, grav: 0.50, gapMin: 320, gapMax: 500, obstSize: [16,26] },
+        normal: { base: 3.2, accel: 0.00018, grav: 0.54, gapMin: 300, gapMax: 460, obstSize: [18,30] },
+        hard:   { base: 4.4, accel: 0.00024, grav: 0.58, gapMin: 270, gapMax: 420, obstSize: [20,34] },
+        insane: { base: 5.8, accel: 0.00028, grav: 0.62, gapMin: 250, gapMax: 400, obstSize: [22,38] }
+      };
+      let diffKey = difficultySel.value;
+
+      // Mundo
+      const GROUND_Y = () => canvas.height * 0.8;
+      const CEILING_Y = () => canvas.height * 0.15; // altura mínima (techo)
+      let speed = DIFF[diffKey].base;     // más lento por defecto
+      let acc   = DIFF[diffKey].accel;
+      let gravity = () => DIFF[diffKey].grav * scale;
+      let score = 0;
+      let best  = +localStorage.getItem('runner_best_v2') || 0;
+      let paused = false;
+      let gameOver = false;
+      // Propulsor: mantener en aire al sostener salto
+      let jumpHeld = false;
+      let thrusterMax = 650; // ms de combustible
+      let thrusterFuel = 650; // ms restantes
+      let thrusterActive = false;
+
+      // Jugador (Ironman estilo vector simple)
+      const player = {
+        x: () => canvas.width * 0.1,
+        y: 0,
+        vy: 0,
+        w: () => 40 * scale,
+        h: () => 44 * scale,
+        onGround(){ return this.y >= GROUND_Y() - this.h(); },
+        reset(){ this.y = GROUND_Y() - this.h(); this.vy = 0; },
+        jump(){ if(this.onGround()){ this.vy = -11.5 * scale; } },
+        update(dt){
+          this.vy += gravity() * dt;
+          this.y  += this.vy * dt;
+          // techo: evita salir por la parte superior
+          const ceil = CEILING_Y();
+          if(this.y < ceil){ this.y = ceil; if(this.vy < 0) this.vy = 0; }
+          if(this.onGround()){ this.y = GROUND_Y() - this.h(); this.vy = 0; }
+        },
+        draw(){
+          const x = this.x(), y = this.y, w = this.w(), h = this.h();
+          const tilt = this.onGround() ? 0 : -0.1; // ligera inclinación al saltar
+          ctx.save();
+          ctx.translate(x + w/2, y + h/2);
+          ctx.rotate(tilt);
+          ctx.translate(-(x + w/2), -(y + h/2));
+
+          // Cuerpo rojo
+          ctx.fillStyle = '#b91c1c';
+          ctx.fillRect(x + 8*scale, y + 10*scale, w - 16*scale, h - 16*scale);
+
+          // Hombros/pechera roja oscura
+          ctx.fillStyle = '#7f1d1d';
+          ctx.fillRect(x + 6*scale, y + 10*scale, w - 12*scale, 8*scale);
+
+          // Casco dorado
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.roundRect(x + 10*scale, y, w - 20*scale, 16*scale, 6*scale);
+          ctx.fill();
+
+          // Visor rojo (ranuras de ojos)
+          ctx.fillStyle = '#7f1d1d';
+          ctx.fillRect(x + 16*scale, y + 6*scale, 8*scale, 3*scale);
+          ctx.fillRect(x + w - 24*scale, y + 6*scale, 8*scale, 3*scale);
+
+          // Reactor ARC (brillo cian)
+          const cx = x + w/2, cy = y + h/2 + 2*scale, r = 5*scale;
+          const grad = ctx.createRadialGradient(cx, cy, 1*scale, cx, cy, 7*scale);
+          grad.addColorStop(0, '#a5f3fc');
+          grad.addColorStop(1, 'rgba(165,243,252,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath(); ctx.arc(cx, cy, 8*scale, 0, Math.PI*2); ctx.fill();
+          ctx.fillStyle = '#e0f2fe';
+          ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+
+          // Brazos/Guantes dorados
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillRect(x, y + 18*scale, 8*scale, 10*scale);
+          ctx.fillRect(x + w - 8*scale, y + 18*scale, 8*scale, 10*scale);
+
+          // Piernas rojo oscuro (gesto en salto)
+          ctx.fillStyle = this.onGround() ? '#7f1d1d' : '#991b1b';
+          ctx.fillRect(x + 12*scale, y + h - 10*scale, 8*scale, 10*scale);
+          ctx.fillRect(x + w - 20*scale, y + h - 10*scale, 8*scale, 10*scale);
+
+          ctx.restore();
+        }
+      };
+      if (typeof ctx.roundRect !== 'function') {
+        // Polyfill simple para roundRect en navegadores antiguos
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r){
+          const rr = Math.min(r, w/2, h/2);
+          this.beginPath();
+          this.moveTo(x+rr, y);
+          this.arcTo(x+w, y, x+w, y+h, rr);
+          this.arcTo(x+w, y+h, x, y+h, rr);
+          this.arcTo(x, y+h, x, y, rr);
+          this.arcTo(x, y, x+w, y, rr);
+          this.closePath();
+        };
+      }
+      player.reset();
+
+      // Obstáculos (bombas)
+      let obstacles = [];
+      function spawnObstacle(){
+        const [minS, maxS] = DIFF[diffKey].obstSize;
+        const size = (minS + Math.random()*(maxS-minS)) * scale;
+        const gapRange = DIFF[diffKey].gapMax - DIFF[diffKey].gapMin;
+        const gap = (DIFF[diffKey].gapMin + Math.random()*gapRange);
+        const x = (obstacles.length ? obstacles[obstacles.length-1].x + gap*scale : canvas.width + 140*scale);
+        obstacles.push({
+          x, size,
+          y: () => GROUND_Y() - size*0.75, // la bomba se apoya un poco
+          fuse: (4 + Math.random()*8)*scale // largo mecha
+        });
+      }
+      for(let i=0;i<3;i++) spawnObstacle();
+
+      function resetGame(){
+        const cfg = DIFF[diffKey];
+        speed = cfg.base;
+        acc   = cfg.accel;
+        score = 0;
+        paused = false;
+        gameOver = false;
+        jumpHeld = false;
+        thrusterFuel = thrusterMax;
+        thrusterActive = false;
+        obstacles = [];
+        for(let i=0;i<3;i++) spawnObstacle();
+        player.reset();
+        lastTime = performance.now();
+      }
+
+      // Select dificultad
+      difficultySel.addEventListener('change', (e)=>{
+        diffKey = e.target.value;
+        resetGame();
+      });
+
+      // Controles
+      function onJump(){
+        player.jump();
+        if(gameOver){ resetGame(); }
+      }
+      function onKey(e){
+        if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW'){
+          e.preventDefault();
+          onJump();
+          jumpHeld = true;
+        } else if(e.code === 'KeyP'){
+          paused = !paused;
+        } else if(e.code === 'KeyR'){
+          resetGame();
+        }
+      }
+      function onKeyUp(e){
+        if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW'){
+          jumpHeld = false;
+        }
+      }
+      window.addEventListener('keydown', onKey, { passive:false });
+      window.addEventListener('keyup', onKeyUp);
+      canvas.addEventListener('pointerdown', (e)=>{ onJump(); jumpHeld = true; });
+      window.addEventListener('pointerup', ()=>{ jumpHeld = false; });
+      window.addEventListener('blur', ()=>{ jumpHeld = false; });
+      document.addEventListener('visibilitychange', ()=>{ if(document.hidden) paused = true; });
+
+      // Bucle
+      let lastTime = performance.now();
+      function loop(now){
+        const dtms = now - lastTime;
+        lastTime = now;
+        const dt = Math.min(2, dtms / 16.67);
+
+        if(!paused && !gameOver){ update(dt, dtms); }
+        draw(now);
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      function update(dt, dtms){
+        speed += acc * Math.min(50, dtms);
+        player.update(dt);
+
+        // Recarga de combustible al tocar el suelo
+        if(player.onGround()){
+          thrusterFuel = thrusterMax;
+        }
+        // Propulsor activo si se mantiene salto en el aire
+        thrusterActive = !player.onGround() && jumpHeld && thrusterFuel > 0;
+        // No empujar más si ya está tocando el techo
+        if(player.y <= CEILING_Y() + 0.5*scale && player.vy <= 0){
+          thrusterActive = false;
+        }
+        if(thrusterActive){
+          // contrarresta gran parte de la gravedad durante un corto periodo
+          const thrust = gravity() * 0.7; // ~70% de la gravedad (menos potente)
+          player.vy -= thrust * dt;
+          thrusterFuel = Math.max(0, thrusterFuel - dtms);
+        }
+
+        for(const o of obstacles){
+          o.x -= speed * 3.0 * scale * dt; // menor que antes para ir más lento
+        }
+
+        if(obstacles.length && obstacles[0].x + obstacles[0].size < -40*scale){
+          obstacles.shift();
+          spawnObstacle();
+        }
+
+        // Colisión AABB aproximando bomba a caja
+        for(const o of obstacles){
+          const bx = o.x, by = o.y(), bw = o.size, bh = o.size;
+          if(rectsOverlap(player.x(), player.y, player.w(), player.h(), bx, by, bw, bh)){
+            gameOver = true;
+            best = Math.max(best, Math.floor(score));
+            localStorage.setItem('runner_best_v2', best);
+            break;
+          }
+        }
+
+        score += 0.10 * speed * dt; // puntuación algo más calmada
+      }
+
+      function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh){
+        return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+      }
+
+      // Dibujo
+      function draw(now){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // cielo
+        const bg = ctx.createLinearGradient(0,0,0,canvas.height);
+        bg.addColorStop(0, '#0b1220'); bg.addColorStop(1, '#111827');
+        ctx.fillStyle = bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        // suelo
+        const gy = GROUND_Y();
+        ctx.fillStyle = '#1f2937'; ctx.fillRect(0, gy, canvas.width, canvas.height - gy);
+        const dashW = 24 * scale, dashG = 18 * scale;
+        const offset = (now/26) % (dashW+dashG);
+        ctx.fillStyle = '#374151';
+        for(let x = -offset; x < canvas.width; x += dashW + dashG){
+          ctx.fillRect(x, gy + 10*scale, dashW, 3*scale);
+        }
+
+        // bombas
+        for(const o of obstacles){
+          drawBomb(o, now);
+        }
+
+        // Ironman
+        player.draw();
+        // Efecto propulsor (llama) cuando está activo
+        if(thrusterActive){
+          const px = player.x() + player.w()/2;
+          const py = player.y + player.h() - 2*scale;
+          const flameH = 12*scale + (Math.random()*4*scale);
+          const flameW = 6*scale + (Math.random()*2*scale);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          const grad = ctx.createLinearGradient(px, py, px, py + flameH);
+          grad.addColorStop(0, 'rgba(255,255,200,0.9)');
+          grad.addColorStop(1, 'rgba(255,150,0,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.quadraticCurveTo(px - flameW, py + flameH*0.5, px, py + flameH);
+          ctx.quadraticCurveTo(px + flameW, py + flameH*0.5, px, py);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // HUD
+        ctx.font = `${14*scale}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto`;
+        ctx.fillStyle = 'rgba(255,255,255,.9)';
+        const T = (window.__I18N__ && window.__I18N__.T) ? window.__I18N__.T : null;
+        const labelScore = T ? T.hudScore : 'Score';
+        const labelBest  = T ? T.hudBest  : 'Best';
+        const labelSpeed = T ? T.hudSpeed : 'Vel';
+        ctx.fillText(`${labelScore}: ${Math.floor(score)}`, 10*scale, 18*scale);
+        ctx.fillStyle = 'rgba(255,255,255,.6)';
+        ctx.fillText(`${labelBest}: ${best}`, 10*scale, 34*scale);
+        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        ctx.fillText(`${labelSpeed}: ${speed.toFixed(1)}`, canvas.width - 110*scale, 18*scale);
+
+        if(paused && !gameOver){ banner((T && T.pauseBanner) || 'PAUSE'); }
+        if(gameOver){ banner((T && T.overBanner) || '💥 GAME OVER — press SPACE or R'); }
+      }
+
+      function drawBomb(o, now){
+        const x = o.x, y = o.y(), s = o.size;
+        ctx.save();
+
+        // cuerpo
+        const grd = ctx.createRadialGradient(x + s*0.45, y + s*0.4, s*0.1, x + s*0.5, y + s*0.5, s*0.6);
+        grd.addColorStop(0, '#6b7280');
+        grd.addColorStop(1, '#111827');
+        ctx.fillStyle = grd;
+        ctx.beginPath(); ctx.arc(x + s/2, y + s/2, s*0.48, 0, Math.PI*2); ctx.fill();
+
+        // boquilla
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(x + s*0.46, y - s*0.08, s*0.08, s*0.2);
+
+        // mecha
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineWidth = 2*scale;
+        ctx.beginPath();
+        ctx.moveTo(x + s*0.50, y - s*0.08);
+        ctx.quadraticCurveTo(x + s*0.65, y - s*0.20, x + s*0.78, y - s*0.10);
+        ctx.stroke();
+
+        // chispa animada
+        const t = (now/120) % 1;
+        const sx = x + s*0.78, sy = y - s*0.10;
+        ctx.fillStyle = t < 0.5 ? '#fde047' : '#f97316';
+        for(let i=0;i<6;i++){
+          const angle = (Math.PI*2/6) * i + now/200;
+          const px = sx + Math.cos(angle)*4*scale;
+          const py = sy + Math.sin(angle)*4*scale;
+          ctx.fillRect(px, py, 2*scale, 2*scale);
+        }
+
+        ctx.restore();
+      }
+
+      function banner(text){
+        const pad = 12*scale;
+        ctx.font = `${16*scale}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto`;
+        const m = ctx.measureText(text);
+        const bw = m.width + pad*2, bh = 32*scale + pad;
+        const bx = (canvas.width - bw)/2, by = canvas.height*0.28;
+        ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.strokeRect(bx+0.5, by+0.5, bw-1, bh-1);
+        ctx.fillStyle = '#e5e7eb'; ctx.fillText(text, bx + pad, by + bh - pad*0.8);
+      }
+    })();
+    // =============== /Runner ===============
+  </script>
+</body>
+</html>
